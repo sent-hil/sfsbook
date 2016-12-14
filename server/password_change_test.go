@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const embeddedResourceForUsermgt = `
+const embeddedResourceForPasswdchg = `
 	IsAuthed: {{.DecodedCookie.IsAuthed}}
 	DisplayName: {{.DecodedCookie.DisplayName}}
 	ChangeAttemptedAndFailed: {{.Results.ChangeAttemptedAndFailed}}
@@ -27,7 +27,7 @@ func testHelper() func() {
 	stashedResources := Resources
 
 	Resources = map[string]string{
-		"/usermgt/changepasswd.html": embeddedResourceForUsermgt,
+		"/usermgt/changepasswd.html": embeddedResourceForPasswdchg,
 	}
 
 	return func() { Resources = stashedResources }
