@@ -97,6 +97,7 @@ func (gs *listUsers) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// Skip immediately to end if not authed.
 	if !GetCookie(req).HasCapability(CapabilityViewUsers) {
+		listusersresult.Diagnosticmessage = "Sign in as an admin to list users."
 		gs.ender(w, req, listusersresult)
 		return
 	}

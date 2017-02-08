@@ -15,6 +15,8 @@ import (
 //	"golang.org/x/crypto/bcrypt"
 )
 
+// makeUnderTestHandlerListUsers creates a listUsers structure that
+// uses a mock (tape based) implementation of PasswordIndex.
 func makeUnderTestHandlerListUsers(tape *mocking.Tape) *listUsers {
 	undertesthandler := &listUsers{
 		// Always use the embedded resource.
@@ -24,6 +26,8 @@ func makeUnderTestHandlerListUsers(tape *mocking.Tape) *listUsers {
 	return undertesthandler
 }
 
+// TestListUsersNotsignedIn shows that the server does not
+// let requests with invalid cookies retrieve the user list.
 func TestListUsersNotsignedIn(t *testing.T) {
 	defer resourceHelper()()
 
@@ -49,6 +53,9 @@ func TestListUsersNotsignedIn(t *testing.T) {
 	}
 }
 
+
+// TestListUsersSignedInNoAdmin shows that a user with a valid cookie but no capability
+// to list users is not permitted to do so.
 func TestListUsersSignedInNoAdmin(t *testing.T) {
 	uuid := uuid.NewRandom()
 	defer resourceHelper()()
@@ -80,8 +87,8 @@ func TestListUsersSignedInNoAdmin(t *testing.T) {
 		t.Fatal("couldn't read recorded response", err)
 	}
 
-	if got, want := string(resultAsString), "\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\tChangeAttemptedAndFailed: true\n\tChangeAttemptedAndSucceeded: false\n\tReasonForFailure: Need to enter the previous password\n"; got != want {
+	if got, want := string(resultAsString), "\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: Sign in as an admin to list users.\n"; got != want {
 		t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
 	}
-
 }
+
