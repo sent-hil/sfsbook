@@ -92,3 +92,63 @@ func TestListUsersSignedInNoAdmin(t *testing.T) {
 	}
 }
 
+
+/*
+// TestListUsersShowBasicList shows that a user with capability can list
+// the currently configured users.
+func TestListUsersShowBasicList(t *testing.T) {
+	uuid := uuid.NewRandom()
+	defer resourceHelper()()
+	undertesthandler := makeUnderTestHandlerListUsers(nil)
+	tape := mocking.NewTape()
+
+	testreq := httptest.NewRequest("GET", "https://sfsbook.org/usermgt/listusers.html", nil)
+	recorder := httptest.NewRecorder()
+
+	// User does not have the right to view users.
+	usercookie := &UserCookie{
+		Uuid:        uuid,
+		Capability:  CapabilityViewUsers ,
+		Displayname: "Homer Simpson",
+		// Time not needed.
+	}
+	testreq = testreq.WithContext(context.WithValue(testreq.Context(),
+		UserCookieStateName, usercookie))
+
+
+// here... not right
+	// I don't actually know what I get. I need to look at it.
+
+	// uuid is missing test.
+	tape.SetResponses(
+		map[string]interface{}{
+			"name": "home",
+			"role": "admin",
+			"display_name": "Homer Simpson",
+		},
+		map[string]interface{}{
+			"name": "lisa",
+			"role": "volunteer",
+			"display_name": "Lisa Simpson",
+		},
+	)
+
+	// Run handler.
+	undertesthandler.ServeHTTP(recorder, testreq)
+
+	// Expect that the user is not allowed to see users.
+	// something is wrong here!
+	result := recorder.Result()
+	if got, want := result.StatusCode, 200; got != want {
+		t.Errorf("bad response code: got %v, want %v", got, want)
+	}
+	resultAsString, err := ioutil.ReadAll(result.Body)
+	if err != nil {
+		t.Fatal("couldn't read recorded response", err)
+	}
+
+	if got, want := string(resultAsString), "\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: Sign in as an admin to list users.\n"; got != want {
+		t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
+	}
+}
+*/
