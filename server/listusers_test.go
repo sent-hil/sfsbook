@@ -4,9 +4,9 @@ import (
 	"context"
 //	"fmt"
 	"io/ioutil"
-//	"net/http"
+	"net/http"
 	"net/http/httptest"
-//	"reflect"
+	"reflect"
 //	"strings"
 	"testing"
 
@@ -92,63 +92,94 @@ func TestListUsersSignedInNoAdmin(t *testing.T) {
 	}
 }
 
-
-/*
-// TestListUsersShowBasicList shows that a user with capability can list
-// the currently configured users.
-func TestListUsersShowBasicList(t *testing.T) {
+func addCookie(req *http.Request) *http.Request {
 	uuid := uuid.NewRandom()
-	defer resourceHelper()()
-	undertesthandler := makeUnderTestHandlerListUsers(nil)
-	tape := mocking.NewTape()
-
-	testreq := httptest.NewRequest("GET", "https://sfsbook.org/usermgt/listusers.html", nil)
-	recorder := httptest.NewRecorder()
-
-	// User does not have the right to view users.
+	// User does have the capability to view users.
 	usercookie := &UserCookie{
 		Uuid:        uuid,
 		Capability:  CapabilityViewUsers ,
 		Displayname: "Homer Simpson",
-		// Time not needed.
 	}
-	testreq = testreq.WithContext(context.WithValue(testreq.Context(),
+	return req.WithContext(context.WithValue(req.Context(),
 		UserCookieStateName, usercookie))
+}
 
+type testPattern struct {
+	urlargs string
+	tapeResponse interface{}
+	tapeRecord []interface{}
+	outputString string	
+}
 
-// here... not right
-	// I don't actually know what I get. I need to look at it.
+// TestListUsersShowBasicList shows that a user with capability can list
+// the currently configured users.
+func TestListUsersShowBasicList(t *testing.T) {
+	defer resourceHelper()()
+	tape := mocking.NewTape()
+	undertesthandler := makeUnderTestHandlerListUsers(tape)
 
-	// uuid is missing test.
-	tape.SetResponses(
-		map[string]interface{}{
-			"name": "home",
-			"role": "admin",
-			"display_name": "Homer Simpson",
+	testPatterns := []testPattern{
+		{
+			"",
+			[]map[string]interface{}{
+				{
+					"display_name": "Homer Simpson",
+				},
+				{
+					"display_name": "Lisa Simpson",
+				},
+			},
+			[]interface {}{listUsersStim{query:"", size:10, from:0}},
+			"\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: [map[display_name:Homer Simpson] map[display_name:Lisa Simpson]]\n\tQuerysuccess: true\n\tDiagnosticmessage: \n",
 		},
-		map[string]interface{}{
-			"name": "lisa",
-			"role": "volunteer",
-			"display_name": "Lisa Simpson",
+		{
+			"",
+			[]map[string]interface{}{},
+			[]interface {}{listUsersStim{query:"", size:10, from:0}},
+			"\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: Userquery matches no users.\n",
 		},
-	)
-
-	// Run handler.
-	undertesthandler.ServeHTTP(recorder, testreq)
-
-	// Expect that the user is not allowed to see users.
-	// something is wrong here!
-	result := recorder.Result()
-	if got, want := result.StatusCode, 200; got != want {
-		t.Errorf("bad response code: got %v, want %v", got, want)
-	}
-	resultAsString, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		t.Fatal("couldn't read recorded response", err)
+		{
+			"?userquery=pandabear",
+			[]map[string]interface{}{
+				{
+					"display_name": "Homer Simpson",
+				},
+			},
+			[]interface {}{listUsersStim{query:"pandabear", size:10, from:0}},
+			"\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: pandabear\n\tUsers: [map[display_name:Homer Simpson]]\n\tQuerysuccess: true\n\tDiagnosticmessage: \n",
+		},
 	}
 
-	if got, want := string(resultAsString), "\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: Sign in as an admin to list users.\n"; got != want {
-		t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
+	for _, tp  := range testPatterns {
+		testreq := httptest.NewRequest("GET",
+			"https://sfsbook.org/usermgt/listusers.html" + tp.urlargs, nil)
+		recorder := httptest.NewRecorder()
+		testreq = addCookie(testreq)
+
+		// Note simplified user data to avoid the issue that the maps are not
+		// emitted in a consistent order.
+		tape.Rewind()
+		tape.SetResponses(tp.tapeResponse)
+
+		// Run handler.
+		undertesthandler.ServeHTTP(recorder, testreq)
+
+		result := recorder.Result()
+		if got, want := result.StatusCode, 200; got != want {
+			t.Errorf("bad response code: got %v, want %v", got, want)
+		}
+		resultAsString, err := ioutil.ReadAll(result.Body)
+		if err != nil {
+			t.Fatal("couldn't read recorded response", err)
+		}
+
+		if got, want := string(resultAsString), tp.outputString; got != want {
+			t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
+		}
+
+		playedtape := tape.Play()
+		if got, want := playedtape, tp.tapeRecord; !reflect.DeepEqual(want, got) {
+			t.Errorf("invalid call sequence. Got %#v, want %#v", got, want)
+		}
 	}
 }
-*/

@@ -91,7 +91,7 @@ func (gs *listUsers) rolechangeUsers(uuids []uuid.UUID, newrole string) error {
 
 // TODO(rjk): Note refactoring opportunity with resource search.
 func (gs *listUsers) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	log.Println("ServeHTTP")
+	log.Println("listUsers.ServeHTTP", req)
 
 	listusersresult := new(listUsersResult)
 
