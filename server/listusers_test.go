@@ -148,6 +148,24 @@ func TestListUsersShowBasicList(t *testing.T) {
 			[]interface {}{listUsersStim{query:"pandabear", size:10, from:0}},
 			"\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: pandabear\n\tUsers: [map[display_name:Homer Simpson]]\n\tQuerysuccess: true\n\tDiagnosticmessage: \n",
 		},
+
+		// start of some more interesting tests
+		// this is a URL string that changes the selected to a 
+		// /usermgt/listusers.html
+// I'm really surprised that this passes. What's the deal with this anyway?
+		{
+			"?userquery=&selected-0=lisasimpson&rolechange=admin",
+			[]map[string]interface{}{
+				{
+					"display_name": "Homer Simpson",
+				},
+				{
+					"display_name": "Lisa Simpson",
+				},
+			},
+			[]interface {}{listUsersStim{query:"", size:10, from:0}},
+			"\n\tIsAuthed: true\n\tDisplayName: Homer Simpson\n\n\tUserquery: \n\tUsers: [map[display_name:Homer Simpson] map[display_name:Lisa Simpson]]\n\tQuerysuccess: true\n\tDiagnosticmessage: Showing all...\n",
+		},
 	}
 
 	for _, tp  := range testPatterns {
