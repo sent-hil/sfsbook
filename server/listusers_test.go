@@ -48,7 +48,7 @@ func TestListUsersNotsignedIn(t *testing.T) {
 		t.Fatal("couldn't read recorded response", err)
 	}
 
-	if got, want := string(resultAsString), "\n\tIsAuthed: false\n\tDisplayName: \n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: \n"; got != want {
+	if got, want := string(resultAsString), "\n\tIsAuthed: false\n\tDisplayName: \n\n\tUserquery: \n\tUsers: []\n\tQuerysuccess: false\n\tDiagnosticmessage: Sign in as an admin to list users.\n"; got != want {
 		t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
 	}
 }
@@ -195,6 +195,8 @@ func TestListUsersShowBasicList(t *testing.T) {
 			t.Errorf("bad response body: got %v\n(%#v)\nwant %v\n(%#v)", got, got, want, want)
 		}
 
+
+// why on earth does this pass.. Am I so clever? I highly doubt it. I have a bug.
 		playedtape := tape.Play()
 		if got, want := playedtape, tp.tapeRecord; !reflect.DeepEqual(want, got) {
 			t.Errorf("invalid call sequence. Got %#v, want %#v", got, want)
